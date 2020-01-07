@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='newscorpus',
-    version='0.0.1',
+    version='0.0.2',
     author='P.J. Hinton',
     author_email='pjhinton@aim.com',
     description='Builds a SQLite database for a text corpus of Fox News Channel website articles.',
