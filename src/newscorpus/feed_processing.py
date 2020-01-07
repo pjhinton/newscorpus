@@ -114,7 +114,7 @@ def retrieve_feeds(session):
 
 def extract_items(session):
 
-    feed_retrievals = session.query(FeedRetrieval).        filter_by(needs_processing=True)
+    feed_retrievals = session.query(FeedRetrieval).filter_by(needs_processing=True)
 
     all_items = []
     feed_retrieval_map = {}
@@ -142,8 +142,12 @@ def extract_items(session):
     # Retrieve Category objects for all categories
     # that currently exist in the database.
     db_categories = session.query(Category).filter(
-        Category.category.in_(list(feed_categories))
+            Category.category.in_(list(feed_categories))
     ).all()
+
+    db_category_map = {c.category: c for c in db_categories}
+
+    db_categories = set(db_category_map.keys())
 
     # Determine what category records need to be 
     # created anew.
@@ -156,18 +160,6 @@ def extract_items(session):
         db_category_map[nc] = category
 
     for itm in all_items:
-        # skip over any items that have been 
-        # already added because they were seen
-        # during previous feed processings
-        item_count = session.query(FeedItem).filter(
-            and_(
-               FeedItem.url == itm['permalink'],
-               FeedItem.published_on == itm['pubdate']
-            )
-        ).count()
-        if item_count > 0:
-            feed_item_counts[feed_retrieval_id] -= 1
-            continue
 
         # convert RSS feed timestamp into SQL DATETIME
         published_on = datetime.datetime.strptime(
@@ -176,6 +168,19 @@ def extract_items(session):
         )
 
         feed_retrieval_id = feed_retrieval_map[itm['permalink']]
+
+        # skip over any items that have been 
+        # already added because they were seen
+        # during previous feed processings
+        item_count = session.query(FeedItem).filter(
+            and_(
+               FeedItem.url == itm['permalink'],
+               FeedItem.published_on == published_on
+            )
+        ).count()
+        if item_count > 0:
+            feed_item_counts[feed_retrieval_id] -= 1
+            continue
 
         feed_item = FeedItem(
             feed_retrieval_id=feed_retrieval_id,
@@ -187,9 +192,8 @@ def extract_items(session):
             url=itm['permalink']
         )
 
-        feed_item.categories = [
-            db_category_map[c] for c in itm['taxonomy']
-        ]
+        for c in itm['taxonomy']:
+            feed_item.categories.append(db_category_map[c])
 
         session.add(feed_item)
 
@@ -202,7 +206,7 @@ def extract_items(session):
             feed_retrieval.needs_processing = False
             session.add(feed_retrieval)
     
-    session.commit()
+        session.commit()
 
 
 def retrieve_articles(session):
