@@ -63,5 +63,7 @@ available via the websites `sitemap.xml` file.
 Work will be done to make the configuration more flexible, like supporting
 databases beyond SQLite.
 
+## About the Name
+
 The name of the package is a portmanteau derived from fusing the former parent 
 of Fox News (News Corp) with the word "corpus".
