@@ -47,7 +47,7 @@ class FeedRetrieval(Base):
     )
 
     def __repr__(self):
-        return '<FeedRetrieval id="{0}" data_feed_id="{1}" retrieved_on="{1}" needs_processing="{2}">'.format(
+        return '<FeedRetrieval id="{0}" data_feed_id="{1}" retrieved_on="{2}" needs_processing="{3}">'.format(
             self.id,
             self.data_feed_id,
             self.retrieved_on,

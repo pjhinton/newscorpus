@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+import argparse
+import logging
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from newscorpus.feed_processing import retrieve_feeds, extract_items,\
+    retrieve_articles
+
+
+def main(args):
+
+    logging.basicConfig(
+        filename='{0}/newscorpus.log'.format(args.logdir),
+        level=logging.INFO,
+        format='%(asctime)s %(message)s'
+    )
+
+    engine = create_engine(args.dbconn)
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+
+    logging.info('Retrieving data feeds')
+    retrieve_feeds(session)
+    logging.info('Extracting items from feeds')
+    extract_items(session)
+    logging.info('Retrieving articles in items')
+    retrieve_articles(session)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('logdir', help='Directory where log file will be written')
+    parser.add_argument('dbconn', help='Database configuration string for SQLAlchemy')
+    args = parser.parse_args()
+    
+    main(args)

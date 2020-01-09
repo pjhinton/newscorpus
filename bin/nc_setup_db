@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+import argparse
+import logging
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+import newscorpus.model as model
+
+
+def main(args):
+
+    logging.basicConfig(
+        filename='{0}/newscorpus.log'.format(args.logdir),
+        level=logging.INFO,
+        format='%(asctime)s %(message)s'
+    )
+
+    engine = create_engine(args.dbconn)
+
+    model.Base.metadata.create_all(engine)
+
+    logging.info('Database tables created from ORM classes')
+
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+
+    feed_paths = {
+        'Health': 'health',
+        'Lifestyle': 'section/lifestyle',
+        'Opinion': 'opinion',
+        'Politics': 'politics',
+        'Science': 'science',
+        'Sports': 'sports',
+        'Tech': 'tech',
+        'National': 'national',
+        'World': 'world'
+    }
+
+    for k, v in feed_paths.items():
+        logging.info('Creating data feed record for {0}'.format(k))
+        url = 'http://feeds.foxnews.com/foxnews/{0}'.format(v)
+
+        data_feed = model.DataFeed(
+            feed_name=k,
+            feed_url=url
+        )
+
+        session.add(data_feed)
+
+    session.commit()
+
+    logging.info('Data feed creation completed')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('logdir', help='Directory where log file will be written')
+    parser.add_argument('dbconn', help='Database configuration string for SQLAlchemy')
+    args = parser.parse_args()
+    
+    main(args)

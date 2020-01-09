@@ -1,24 +1,13 @@
 import datetime
-import requests
+import logging
 import xml.etree.ElementTree as ET
 
+import requests
 
 from bs4 import BeautifulSoup
 from sqlalchemy import and_
 from newscorpus.model import DataFeed, FeedRetrieval, FeedItem,\
     ArticleRetrieval, Category
-
-
-def process_element(elmt, lvl):
-    print(('     ' * lvl) + elmt.tag)
-    if elmt.attrib is not None:
-        for k, v in elmt.attrib.items():
-            print(('     ' * (lvl + 1)) + '{0} = {1}'.format(k, v))
-    if len(elmt) > 0:
-        for child in elmt:
-            process_element(child, lvl + 1)
-    elif elmt.text is not None:
-        print(('     ' * (lvl + 1)) + elmt.text)
 
 
 def get_url(url):
@@ -71,7 +60,7 @@ def process_feed_xml(feed_xml):
 
 
 def extract_text(article_html):
-    soup = BeautifulSoup(article_html)
+    soup = BeautifulSoup(article_html, 'html.parser')
     res = soup.find('div', class_='article-body')
     
     if res is not None:
@@ -105,9 +94,10 @@ def retrieve_feeds(session):
             http_status=http_status,
             http_reason=http_reason,
             needs_processing=(http_status==200), # Don't try to process if HTTP request error
-            retrieved_on= retrieved_on
+            retrieved_on=retrieved_on
         )
         session.add(feed_retrieval)
+        logging.info('Created: {0}'.format(feed_retrieval))
 
     session.commit()
 
@@ -156,6 +146,7 @@ def extract_items(session):
     for nc in new_categories:
         category = Category(category=nc)
         session.add(category)
+        logging.info('Created: {0}'.format(category))
         session.commit()
         db_category_map[nc] = category
 
@@ -197,6 +188,8 @@ def extract_items(session):
 
         session.add(feed_item)
 
+        logging.info('Created: {0}'.format(feed_item))
+
         feed_item_counts[feed_retrieval_id] -= 1
 
         if feed_item_counts[feed_retrieval_id] == 0:
@@ -230,6 +223,8 @@ def retrieve_articles(session):
             retrieved_on=retrieved_on
         )
         session.add(article_retrieval)
+
+        logging.info('Created: {0}'.format(article_retrieval))
 
         fi.needs_processing=False
         session.add(fi)

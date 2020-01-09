@@ -24,30 +24,36 @@ with the others.  The Video feed is ignored because the focus of this project
 is textual content.  The Travel feed is ignored because the URL provided on 
 their [feed listing](https://www.foxnews.com/about/rss/) site is not accessible.
 
+## Common Parameters
+
+The scripts in this package take two positional arguments:
+
+* `logdir` - The full path to a directory where log files should be written.
+* `dbconn` - The [SQLAlchemy database URL](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) where data will be written to
+
 ## Corpus Storage and Setup
 
-All data is persisted in an SQLite database, which is managed and accessed via
+All data is persisted in a database, which is managed and accessed via
 the SQLAlchemy ORM API.  Table creation and feed URL population is accomplished
-fia the `setup_db.py` script.  The database file is created in the current
-working directory of the invoking shell.
+via the `nc_setup_db` script.  
 
 ## Retrieving Data for Corpus
 
-The `process_feeds.py` script polls all feeds and processes articles not currently
+The `nc_process_feeds` script polls all feeds and processes articles not currently
 stored in the database.  The final product is a plain text version of the article 
-content as well as article metadata.  This script should be invoked in the same
-directory where the corpus database file resides at regular intervals by your
-favorite job scheduler.
+content as well as article metadata.  This script should be invoked at regular 
+intervals by your favorite job scheduler.
 
 ## Corpus Creation and Data Model
 
 Each poll attempt is stored in the `feed_retrievals` table and includes a copy
 of the raw RSS XML and data about the HTTP request itself.
 
-Each feed item is processed for article metadata and the URL for retrieving
+Each RSS XML item is processed for article metadata and the URL for retrieving
 the article's webpage.  This data is stored in the `feed_items` table.
 
-Categories associated with each article are stored in a `categories` table, 
+Each RSS items may include one or more category elements with a domain attribute
+of `foxnews.com/taxonomy`.  Each distinct category is stored in a `categories` table, 
 and associations with articles is accomplished via a many-to-many mapping table.
 
 Each article webpage is retrieved via HTTP. The HTML response is retained, and
@@ -60,8 +66,9 @@ All of this data and the HTTP request metadata are stored in the
 Plans are to refine this package to support articles published previously and
 available via the websites `sitemap.xml` file.
 
-Work will be done to make the configuration more flexible, like supporting
-databases beyond SQLite.
+Provide greater flexibility beyond just required command line arguments to specify
+the log file directory and database connection.  Most likely this will involve
+a configuration file and environment variables.
 
 ## About the Name
 

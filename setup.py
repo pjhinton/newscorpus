@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='newscorpus',
-    version='0.0.2',
+    version='0.1.0',
     author='P.J. Hinton',
     author_email='pjhinton@aim.com',
     description='Builds a SQLite database for a text corpus of Fox News Channel website articles.',
@@ -11,8 +11,8 @@ setup(
     package_dir={'': 'src'},
     packages=find_namespace_packages(where='src'),
     scripts=[
-        'bin/process_feeds.py',
-        'bin/setup_db.py'
+        'bin/nc_process_feeds',
+        'bin/nc_setup_db'
     ],
     install_requires=[
         'beautifulsoup4==4.8.2',
