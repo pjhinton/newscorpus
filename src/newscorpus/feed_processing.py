@@ -16,26 +16,32 @@ def get_url(url):
 
 
 def process_feed_xml(feed_xml):
-    
+
     result = []
-    
+
     elroot = ET.fromstring(feed_xml)
 
     items = elroot.findall('.//item')
 
     for item in items:
         resdict = {}
-        
+
         link = item.find('./link')
         permalink = item.find('./guid[@isPermaLink="true"]')
         title = item.find('./title')
         description = item.find('./description')
         pubdate = item.find('./pubDate')
-        source = item.find('./category[@domain="foxnews.com/metadata/dc.source"]')
-        creator = item.find('./category[@domain="foxnews.com/metadata/dc.creator"]')
-        taxcats = item.findall('./category[@domain="foxnews.com/taxonomy"]')
-        
-        taxonomy = []   
+        source = item.find(
+            './category[@domain="foxnews.com/metadata/dc.source"]'
+        )
+        creator = item.find(
+            './category[@domain="foxnews.com/metadata/dc.creator"]'
+        )
+        taxcats = item.findall(
+            './category[@domain="foxnews.com/taxonomy"]'
+        )
+
+        taxonomy = []
         for taxcat in taxcats:
             taxonomy.append(taxcat.text)
         resdict['taxonomy'] = taxonomy
@@ -53,16 +59,16 @@ def process_feed_xml(feed_xml):
             resdict['permalink'] = permalink.text
         else:
             resdict['permalink'] = link.text
-            
+
         result.append(resdict)
-    
+
     return result
 
 
 def extract_text(article_html):
     soup = BeautifulSoup(article_html, 'html.parser')
     res = soup.find('div', class_='article-body')
-    
+
     if res is not None:
         article_text = ''
         for it in res:
@@ -78,7 +84,7 @@ def extract_text(article_html):
 
 
 def retrieve_feeds(session):
-    
+
     feeds = session.query(DataFeed).all()
 
     for f in feeds:
@@ -93,7 +99,8 @@ def retrieve_feeds(session):
             feed_content=feed_content,
             http_status=http_status,
             http_reason=http_reason,
-            needs_processing=(http_status==200), # Don't try to process if HTTP request error
+            # Don't try to process if HTTP request error
+            needs_processing=(http_status == 200),
             retrieved_on=retrieved_on
         )
         session.add(feed_retrieval)
@@ -104,7 +111,8 @@ def retrieve_feeds(session):
 
 def extract_items(session):
 
-    feed_retrievals = session.query(FeedRetrieval).filter_by(needs_processing=True)
+    feed_retrievals = session.query(FeedRetrieval).\
+         filter_by(needs_processing=True)
 
     all_items = []
     feed_retrieval_map = {}
@@ -139,7 +147,7 @@ def extract_items(session):
 
     db_categories = set(db_category_map.keys())
 
-    # Determine what category records need to be 
+    # Determine what category records need to be
     # created anew.
     new_categories = feed_categories.difference(db_categories)
 
@@ -160,7 +168,7 @@ def extract_items(session):
 
         feed_retrieval_id = feed_retrieval_map[itm['permalink']]
 
-        # skip over any items that have been 
+        # skip over any items that have been
         # already added because they were seen
         # during previous feed processings
         item_count = session.query(FeedItem).filter(
@@ -198,7 +206,7 @@ def extract_items(session):
             ).one()
             feed_retrieval.needs_processing = False
             session.add(feed_retrieval)
-    
+
         session.commit()
 
 
@@ -226,7 +234,7 @@ def retrieve_articles(session):
 
         logging.info('Created: {0}'.format(article_retrieval))
 
-        fi.needs_processing=False
+        fi.needs_processing = False
         session.add(fi)
-        
+
     session.commit()

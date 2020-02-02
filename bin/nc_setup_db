@@ -55,10 +55,17 @@ def main(args):
 
     logging.info('Data feed creation completed')
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('logdir', help='Directory where log file will be written')
-    parser.add_argument('dbconn', help='Database configuration string for SQLAlchemy')
+    parser.add_argument(
+        'logdir',
+        help='Directory where log file will be written'
+    )
+    parser.add_argument(
+        'dbconn',
+        help='Database configuration string for SQLAlchemy'
+    )
     args = parser.parse_args()
-    
+
     main(args)

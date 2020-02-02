@@ -16,7 +16,7 @@ class DataFeed(Base):
     feed_url = Column(String(512), nullable=False, unique=True)
 
     retrievals = relationship(
-        'FeedRetrieval', 
+        'FeedRetrieval',
         back_populates='data_feed'
     )
 
@@ -47,11 +47,15 @@ class FeedRetrieval(Base):
     )
 
     def __repr__(self):
-        return '<FeedRetrieval id="{0}" data_feed_id="{1}" retrieved_on="{2}" needs_processing="{3}">'.format(
-            self.id,
-            self.data_feed_id,
-            self.retrieved_on,
-            self.needs_processing
+        return (
+            '<FeedRetrieval id="{0}" data_feed_id="{1}" ' +
+            'retrieved_on="{2}" needs_processing="{3}">'.
+            format(
+                self.id,
+                self.data_feed_id,
+                self.retrieved_on,
+                self.needs_processing
+            )
         )
 
 
@@ -68,7 +72,7 @@ class FeedItem(Base):
     published_on = Column(DateTime, nullable=False)
     url = Column(String(256), nullable=False)
     needs_processing = Column(Boolean, nullable=False, default=True)
-    
+
     feed_retrieval = relationship(
         'FeedRetrieval',
         back_populates='items'
@@ -92,7 +96,7 @@ class FeedItem(Base):
             self.needs_processing
         )
 
-    
+
 class Category(Base):
 
     __tablename__ = 'categories'
@@ -104,7 +108,7 @@ class Category(Base):
         secondary='item_categories',
         back_populates='categories'
     )
-    
+
     def __repr__(self):
         return '<Category id="{0}" category="{1}">'.format(
             self.id,
