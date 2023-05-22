@@ -16,7 +16,7 @@ setup(
     ],
     install_requires=[
         'beautifulsoup4==4.8.2',
-        'requests==2.23.0',
+        'requests==2.31.0',
         'SQLAlchemy==1.3.13'
     ]
 )
