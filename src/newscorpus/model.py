@@ -35,7 +35,7 @@ class FeedRetrieval(Base):
     data_feed_id = Column(Integer, ForeignKey("data_feeds.id"))
     http_status = Column(Integer)
     http_reason = Column(String(256))
-    retrieved_on = Column(DateTime)
+    retrieved_on = Column(DateTime(timezone=True))
     feed_content = Column(Text)
     needs_processing = Column(Boolean, nullable=False, default=True)
 

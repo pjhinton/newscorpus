@@ -43,15 +43,66 @@ def parse_rss_date(rss_date):
     )
 
     tz_map = {
-        "UTC": "Etc/Utc",
-        "EST": "US/Eastern",
-        "EDT": "US/Eastern",
-        "CST": "US/Central",
-        "CDT": "US/Central",
-        "MST": "US/Mountain",
-        "MDT": "US/Mountain",
-        "PST": "US/Pacific",
-        "PDT": "US/Pacific",
+        "UTC": "Etc/UTC",
+        "UT": "Etc/UTC",
+        "GMT": "Etc/UTC",
+        "EST": "Etc/GMT+5",
+        "EDT": "Etc/GMT+4",
+        "CST": "Etc/GMT+6",
+        "CDT": "Etc/GMT+5",
+        "MST": "Etc/GMT+7",
+        "MDT": "Etc/GMT+6",
+        "PST": "Etc/GMT+8",
+        "PDT": "Etc/GMT+7",
+        "-01": "Etc/GMT+1",
+        "-02": "Etc/GMT+2",
+        "-03": "Etc/GMT+3",
+        "-04": "Etc/GMT+4",
+        "-05": "Etc/GMT+5",
+        "-06": "Etc/GMT+6",
+        "-07": "Etc/GMT+7",
+        "-08": "Etc/GMT+8",
+        "-09": "Etc/GMT+9",
+        "-10": "Etc/GMT+10",
+        "-11": "Etc/GMT+11",
+        "-12": "Etc/GMT+12",
+        "+00": "Etc/Utc",
+        "+01": "Etc/GMT-1",
+        "+02": "Etc/GMT-2",
+        "+03": "Etc/GMT-3",
+        "+04": "Etc/GMT-4",
+        "+05": "Etc/GMT-5",
+        "+06": "Etc/GMT-6",
+        "+07": "Etc/GMT-7",
+        "+08": "Etc/GMT-8",
+        "+09": "Etc/GMT-9",
+        "+10": "Etc/GMT-10",
+        "+11": "Etc/GMT-11",
+        "+12": "Etc/GMT-12",
+        "A": "Etc/GMT+1",
+        "B": "Etc/GMT+2",
+        "C": "Etc/GMT+3",
+        "D": "Etc/GMT+4",
+        "E": "Etc/GMT+5",
+        "F": "Etc/GMT+6",
+        "H": "Etc/GMT+7",
+        "I": "Etc/GMT+8",
+        "K": "Etc/GMT+10",
+        "L": "Etc/GMT+11",
+        "M": "Etc/GMT+12",
+        "N": "Etc/GMT-1",
+        "O": "Etc/GMT-2",
+        "P": "Etc/GMT-3",
+        "Q": "Etc/GMT-4",
+        "R": "Etc/GMT-5",
+        "S": "Etc/GMT-6",
+        "T": "Etc/GMT-7",
+        "U": "Etc/GMT-8",
+        "V": "Etc/GMT-9",
+        "W": "Etc/GMT-10",
+        "X": "Etc/GMT-11",
+        "Y": "Etc/GMT-12",
+        "Z": "Etc/UTC",
     }
 
     toks = rss_date.split(" ")
@@ -60,11 +111,24 @@ def parse_rss_date(rss_date):
     month = "{0:02d}".format(month_map[toks[2]])
     year = toks[3]
     time = toks[4]
-    timezone = pytz.timezone(tz_map[toks[5]])
+
+    # See https://validator.w3.org/feed/docs/rss2.html
+    # and https://datatracker.ietf.org/doc/html/rfc822#section-5.1
+    if toks[5] in tz_map:
+        timezone = pytz.timezone(tz_map[toks[5]])
+    elif re.match(r"[+\-]\d{4}", toks[5]):
+        # This is kind of dirty in the sense that it
+        # ignores the minutes part of the offset.
+        timezone = pytz.timezone(tz_map[toks[5][:3]])
+    else:
+        # Couldn't figure out timezone. Just fall back to UTC.
+        timezone = pytz.timezone("Etc/UTC")
 
     date = datetime.date.fromisoformat(f"{year}-{month}-{day}")
     time = datetime.time.fromisoformat(time)
-    dt = datetime.datetime.combine(date, time, tzinfo=timezone)
+    dt = datetime.datetime.combine(date, time)
+    dt = timezone.localize(dt)
+    dt = dt.astimezone(pytz.timezone("Etc/UTC"))
 
     return dt
 
